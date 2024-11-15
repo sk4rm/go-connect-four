@@ -24,25 +24,27 @@ func TestNewBoard(t *testing.T) {
 
 func TestBoard_Place(t *testing.T) {
 	board := NewBoard(6, 7)
-
-	// Players x and y
 	x := 1
-	y := 2
 
-	_ = board.Place(5, x)
-	_ = board.Place(5, y)
-	_ = board.Place(2, x)
+	nextBoard, err := board.Place(5, x)
+	if err != nil {
+		t.Error(err)
+	}
 
 	expected := Board([][]int{
 		{0, 0, 0, 0, 0, 0, 0},
 		{0, 0, 0, 0, 0, 0, 0},
 		{0, 0, 0, 0, 0, 0, 0},
 		{0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, y, 0},
-		{0, 0, x, 0, 0, x, 0},
+		{0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, x, 0},
 	})
 
-	if !reflect.DeepEqual(board, expected) {
+	if reflect.DeepEqual(nextBoard, board) {
+		t.Errorf("Place should not affect original board")
+	}
+
+	if !reflect.DeepEqual(nextBoard, expected) {
 		t.Errorf("Board placed wrongly\nExpected: %v\nActual: %v", expected, board)
 	}
 }
@@ -60,7 +62,7 @@ func TestBoard_PlaceInvalidMove(t *testing.T) {
 		{0, 0, x, 0, 0, x, 0},
 	})
 
-	err := board.Place(2, x)
+	_, err := board.Place(2, x)
 	if !errors.Is(err, InvalidMoveError) {
 		t.Errorf("Placing on a full column should return InvalidMoveError")
 	}
@@ -69,11 +71,12 @@ func TestBoard_PlaceInvalidMove(t *testing.T) {
 func TestBoard_PlaceInvalidPlayer(t *testing.T) {
 	board := NewBoard(6, 7)
 
-	err := board.Place(2, 0)
+	_, err := board.Place(2, 0)
 
 	if !errors.Is(err, InvalidPlayerError) {
 		t.Errorf("Placing as player 0 (reserved as empty) should return InvalidPlayerError")
 	}
+
 }
 
 func TestBoard_CheckWinner(t *testing.T) {

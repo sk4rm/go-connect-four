@@ -14,24 +14,33 @@ func NewBoard(height int, width int) Board {
 	return board
 }
 
+func (board Board) Clone() Board {
+	clone := NewBoard(len(board), len(board[0]))
+	for row := range clone {
+		_ = copy(clone[row], board[row])
+	}
+	return clone
+}
+
 var InvalidMoveError = errors.New("invalid move")
 var InvalidPlayerError = errors.New("invalid player")
 
-func (board Board) Place(column int, player int) error {
+func (board Board) Place(column int, player int) (Board, error) {
 	if player == 0 {
-		return InvalidPlayerError
+		return nil, InvalidPlayerError
 	}
 
 	// Start from the bottom row of board
 	row := len(board) - 1
 	for row >= 0 {
 		if board[row][column] == 0 {
-			board[row][column] = player
-			return nil
+			newBoard := board.Clone()
+			newBoard[row][column] = player
+			return newBoard, nil
 		}
 		row--
 	}
-	return InvalidMoveError
+	return nil, InvalidMoveError
 }
 
 func allEqual(values ...int) bool {
