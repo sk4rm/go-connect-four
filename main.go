@@ -42,6 +42,13 @@ var (
 	two *ebiten.Image
 )
 
+const (
+	PREVIEW = -1
+	EMPTY   = 0
+	HUMAN   = 1
+	AI      = 2
+)
+
 func preloadImage(src []byte) *ebiten.Image {
 	decoded, _, err := image.Decode(bytes.NewReader(src))
 	if err != nil {
@@ -66,12 +73,23 @@ type Game struct {
 	isGameOver bool
 }
 
+func switchPlayer(player int) (int, error) {
+	switch player {
+	case HUMAN:
+		return AI, nil
+	case AI:
+		return HUMAN, nil
+	default:
+		return EMPTY, fmt.Errorf("invalid player %v", player)
+	}
+}
+
 func (g *Game) Update() error {
 	cx, cy := ebiten.CursorPosition()
 	var selection *Cell
 	for _, cell := range g.cells {
-		if g.board[cell.i][cell.j] == -1 {
-			g.board[cell.i][cell.j] = 0
+		if g.board[cell.i][cell.j] == PREVIEW {
+			g.board[cell.i][cell.j] = EMPTY
 		}
 		if cell.At(float64(cx), float64(cy)) {
 			selection = cell
@@ -89,15 +107,17 @@ func (g *Game) Update() error {
 			if g.board.CheckWinner() == g.player {
 				g.isGameOver = true
 			} else {
-				g.player %= 2
-				g.player += 1
+				g.player, err = switchPlayer(g.player)
+				if err != nil {
+					return err
+				}
 			}
-		} else {
 
+		} else {
 			var err error
-			g.board, err = g.board.Place(selection.j, -1)
+			g.board, err = g.board.Place(selection.j, PREVIEW)
 			if err != nil && !errors.Is(err, InvalidMoveError) && !errors.Is(err, InvalidPlayerError) {
-				log.Fatal("Something went wrong with hover selection: ", err)
+				return fmt.Errorf("invalid hover selection: %v", err)
 			}
 		}
 	}
@@ -152,13 +172,13 @@ func (c *Cell) At(x, y float64) bool {
 func drawCell(screen *ebiten.Image, i, j, player int, game *Game) {
 	var cell *ebiten.Image
 	switch player {
-	case -1:
+	case PREVIEW:
 		cell = selected
-	case 0:
+	case EMPTY:
 		cell = zero
-	case 1:
+	case HUMAN:
 		cell = one
-	case 2:
+	case AI:
 		cell = two
 	default:
 		log.Printf("no player %v", player)
@@ -232,7 +252,7 @@ func main() {
 	game := &Game{
 		NewBoard(6, 7),
 		[]*Cell{},
-		1,
+		HUMAN,
 		false,
 	}
 

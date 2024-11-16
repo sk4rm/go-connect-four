@@ -17,17 +17,15 @@ func possibleBoardMoves(board Board) []int {
 
 func minimax(board Board, depth int, isPlayerTurn bool) (_score float64, _column int) {
 	const (
-		player       = 1
-		opponent     = 2
 		winningScore = 1.0
-		invalid      = -1
+		noMove       = -1
 	)
 
 	if depth == 0 {
-		return 0.0, invalid
+		return 0.0, noMove
 	}
 	if board.CheckWinner() != 0 {
-		return winningScore, invalid
+		return winningScore, noMove
 	}
 
 	var (
@@ -40,7 +38,7 @@ func minimax(board Board, depth int, isPlayerTurn bool) (_score float64, _column
 		score = math.Inf(1)
 		for column := range moves {
 			// Execute the move as player
-			nextBoard, err := board.Place(column, player)
+			nextBoard, err := board.Place(column, HUMAN)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -58,7 +56,7 @@ func minimax(board Board, depth int, isPlayerTurn bool) (_score float64, _column
 		score = math.Inf(-1)
 		for column := range moves {
 			// Execute the move as opponent
-			nextBoard, err := board.Place(column, opponent)
+			nextBoard, err := board.Place(column, AI)
 			if err != nil {
 				log.Fatal(err)
 			}
