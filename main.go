@@ -1,50 +1,75 @@
 package main
 
 import (
+	"bytes"
+	_ "embed"
 	"errors"
 	"fmt"
 	"github.com/hajimehoshi/ebiten/v2/colorm"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"image"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
+//go:embed img/background.png
+var _bg []byte
+
+//go:embed img/bluebox.png
+var _bluebox []byte
+
+//go:embed img/select.png
+var _selected []byte
+
+//go:embed img/zero.png
+var _zero []byte
+
+//go:embed img/one.png
+var _one []byte
+
+//go:embed img/two.png
+var _two []byte
+
 var bg, bluebox, selected, zero, one, two *ebiten.Image
 
 func init() {
-	var err error
-
-	bg, _, err = ebitenutil.NewImageFromFile("img/background.png")
+	bgDecoded, _, err := image.Decode(bytes.NewReader(_bg))
 	if err != nil {
 		log.Fatal(err)
 	}
+	bg = ebiten.NewImageFromImage(bgDecoded)
 
-	bluebox, _, err = ebitenutil.NewImageFromFile("img/bluebox.png")
+	blueboxDecoded, _, err := image.Decode(bytes.NewReader(_bluebox))
 	if err != nil {
 		log.Fatal(err)
 	}
+	bluebox = ebiten.NewImageFromImage(blueboxDecoded)
 
-	selected, _, err = ebitenutil.NewImageFromFile("img/select.png")
+	selectedDecoded, _, err := image.Decode(bytes.NewReader(_selected))
 	if err != nil {
 		log.Fatal(err)
 	}
+	selected = ebiten.NewImageFromImage(selectedDecoded)
 
-	zero, _, err = ebitenutil.NewImageFromFile("img/zero.png")
+	zeroDecoded, _, err := image.Decode(bytes.NewReader(_zero))
 	if err != nil {
 		log.Fatal(err)
 	}
+	zero = ebiten.NewImageFromImage(zeroDecoded)
 
-	one, _, err = ebitenutil.NewImageFromFile("img/one.png")
+	oneDecoded, _, err := image.Decode(bytes.NewReader(_one))
 	if err != nil {
 		log.Fatal(err)
 	}
+	one = ebiten.NewImageFromImage(oneDecoded)
 
-	two, _, err = ebitenutil.NewImageFromFile("img/two.png")
+	twoDecoded, _, err := image.Decode(bytes.NewReader(_two))
 	if err != nil {
 		log.Fatal(err)
 	}
+	two = ebiten.NewImageFromImage(twoDecoded)
 }
 
 type Game struct {
