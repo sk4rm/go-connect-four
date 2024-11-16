@@ -22,6 +22,14 @@ func (board Board) Clone() Board {
 	return clone
 }
 
+func (board Board) At(i, j int) int {
+	return board[i][j]
+}
+
+func (board Board) IsColumnPlaceable(column int) bool {
+	return board[0][column] == 0
+}
+
 var InvalidMoveError = errors.New("invalid move")
 var InvalidPlayerError = errors.New("invalid player")
 
@@ -80,14 +88,14 @@ func (board Board) CheckWinner() int {
 			}
 
 			// Check diagonal /
-			if i+3 < width && j-3 >= 0 {
+			if i+3 < height && j-3 >= 0 {
 				if allEqual(player, board[i+1][j-1], board[i+2][j-2], board[i+3][j-3]) {
 					return player
 				}
 			}
 
 			// Check diagonal \
-			if i+3 < width && j+3 <= height {
+			if i+3 < height && j+3 < width {
 				if allEqual(player, board[i+1][j+1], board[i+2][j+2], board[i+3][j+3]) {
 					return player
 				}

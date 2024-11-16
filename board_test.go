@@ -22,6 +22,22 @@ func TestNewBoard(t *testing.T) {
 	}
 }
 
+func TestBoard_At(t *testing.T) {
+	x := 1
+	board := Board([][]int{
+		{0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, x, 0},
+	})
+
+	if board.At(0, 5) != x {
+		t.Errorf("Board At should return player at given x, y position")
+	}
+}
+
 func TestBoard_Place(t *testing.T) {
 	board := NewBoard(6, 7)
 	x := 1
