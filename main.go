@@ -8,68 +8,55 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/colorm"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"image"
+	_ "image/png"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
-//go:embed img/background.png
-var _bg []byte
+var (
+	//go:embed img/background.png
+	pngBg []byte
 
-//go:embed img/bluebox.png
-var _bluebox []byte
+	//go:embed img/bluebox.png
+	pngBlueBox []byte
 
-//go:embed img/select.png
-var _selected []byte
+	//go:embed img/select.png
+	pngSelect []byte
 
-//go:embed img/zero.png
-var _zero []byte
+	//go:embed img/zero.png
+	pngZero []byte
 
-//go:embed img/one.png
-var _one []byte
+	//go:embed img/one.png
+	pngOne []byte
 
-//go:embed img/two.png
-var _two []byte
+	//go:embed img/two.png
+	pngTwo []byte
 
-var bg, bluebox, selected, zero, one, two *ebiten.Image
+	bg,
+	blueBox,
+	selected,
+	zero,
+	one,
+	two *ebiten.Image
+)
+
+func preloadImage(src []byte) *ebiten.Image {
+	decoded, _, err := image.Decode(bytes.NewReader(src))
+	if err != nil {
+		log.Fatal(err)
+	}
+	return ebiten.NewImageFromImage(decoded)
+}
 
 func init() {
-	bgDecoded, _, err := image.Decode(bytes.NewReader(_bg))
-	if err != nil {
-		log.Fatal(err)
-	}
-	bg = ebiten.NewImageFromImage(bgDecoded)
-
-	blueboxDecoded, _, err := image.Decode(bytes.NewReader(_bluebox))
-	if err != nil {
-		log.Fatal(err)
-	}
-	bluebox = ebiten.NewImageFromImage(blueboxDecoded)
-
-	selectedDecoded, _, err := image.Decode(bytes.NewReader(_selected))
-	if err != nil {
-		log.Fatal(err)
-	}
-	selected = ebiten.NewImageFromImage(selectedDecoded)
-
-	zeroDecoded, _, err := image.Decode(bytes.NewReader(_zero))
-	if err != nil {
-		log.Fatal(err)
-	}
-	zero = ebiten.NewImageFromImage(zeroDecoded)
-
-	oneDecoded, _, err := image.Decode(bytes.NewReader(_one))
-	if err != nil {
-		log.Fatal(err)
-	}
-	one = ebiten.NewImageFromImage(oneDecoded)
-
-	twoDecoded, _, err := image.Decode(bytes.NewReader(_two))
-	if err != nil {
-		log.Fatal(err)
-	}
-	two = ebiten.NewImageFromImage(twoDecoded)
+	bg = preloadImage(pngBg)
+	blueBox = preloadImage(pngBlueBox)
+	selected = preloadImage(pngSelect)
+	zero = preloadImage(pngZero)
+	one = preloadImage(pngOne)
+	two = preloadImage(pngTwo)
 }
 
 type Game struct {
@@ -137,8 +124,8 @@ func drawBackground(screen *ebiten.Image) {
 func drawBluebox(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(
-		-float64(bluebox.Bounds().Dx())/2,
-		-float64(bluebox.Bounds().Dy())/2,
+		-float64(blueBox.Bounds().Dx())/2,
+		-float64(blueBox.Bounds().Dy())/2,
 	)
 
 	scale := float64(2) / 3 * ebiten.Monitor().DeviceScaleFactor()
@@ -149,7 +136,7 @@ func drawBluebox(screen *ebiten.Image) {
 		float64(screen.Bounds().Dy())/2,
 	)
 
-	screen.DrawImage(bluebox, op)
+	screen.DrawImage(blueBox, op)
 }
 
 type Cell struct {
