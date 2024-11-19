@@ -10,6 +10,7 @@ import (
 	"image"
 	_ "image/png"
 	"log"
+	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -67,10 +68,11 @@ func init() {
 }
 
 type Game struct {
-	board      Board
-	cells      []*Cell
-	player     int
-	isGameOver bool
+	board             Board
+	cells             []*Cell
+	player            int
+	isGameOver        bool
+	hasPlayerMadeMove bool
 }
 
 func switchPlayer(player int) (int, error) {
@@ -85,6 +87,10 @@ func switchPlayer(player int) (int, error) {
 }
 
 func (g *Game) Update() error {
+	if g.isGameOver {
+		return nil
+	}
+
 	cx, cy := ebiten.CursorPosition()
 	var selection *Cell
 	for _, cell := range g.cells {
@@ -96,29 +102,67 @@ func (g *Game) Update() error {
 		}
 	}
 
-	if selection != nil && !g.isGameOver && g.board.IsColumnPlaceable(selection.j) {
-		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-			nextBoard, err := g.board.Place(selection.j, g.player)
-			if err != nil {
-				return err
-			}
-			g.board = nextBoard
+	if g.player == HUMAN {
 
-			if g.board.CheckWinner() == g.player {
-				g.isGameOver = true
-			} else {
+		if selection != nil && g.board.IsColumnPlaceable(selection.j) {
+			if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) { // click logic
+				nextBoard, err := g.board.Place(selection.j, g.player)
+				if err != nil {
+					return err
+				}
+				g.board = nextBoard
+
+				// Check winner
+				if g.board.CheckWinner() == g.player {
+					g.isGameOver = true
+				}
+
 				g.player, err = switchPlayer(g.player)
 				if err != nil {
 					return err
 				}
-			}
 
-		} else {
-			var err error
-			g.board, err = g.board.Place(selection.j, PREVIEW)
-			if err != nil && !errors.Is(err, InvalidMoveError) && !errors.Is(err, InvalidPlayerError) {
-				return fmt.Errorf("invalid hover selection: %v", err)
+			} else { // hover logic
+				var err error
+				g.board, err = g.board.Place(selection.j, PREVIEW)
+				if err != nil && !errors.Is(err, InvalidMoveError) && !errors.Is(err, InvalidPlayerError) {
+					return fmt.Errorf("invalid hover selection: %v", err)
+				}
 			}
+		}
+
+	} else {
+		// AI turn
+		_, move, err := minimax(g.board, 30, false)
+		if err != nil {
+			return fmt.Errorf("AI board think: %v", err)
+		}
+
+		// If move is -1, either due to no foreseeable wins (depth cutoff), or winning state
+		if move == -1 {
+			moves := possibleBoardMoves(g.board)
+			if len(moves) == 0 {
+				g.isGameOver = true
+				fmt.Println("Tie?")
+			} else {
+				// Make random move
+				move = moves[rand.Int()%len(moves)]
+			}
+		}
+
+		g.board, err = g.board.Place(move, AI)
+		if err != nil {
+			return fmt.Errorf("AI board place: %v", err)
+		}
+
+		// Check winner
+		if g.board.CheckWinner() == g.player {
+			g.isGameOver = true
+		}
+
+		g.player, err = switchPlayer(g.player)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -141,7 +185,7 @@ func drawBackground(screen *ebiten.Image) {
 	colorm.DrawImage(screen, bg, c, op)
 }
 
-func drawBluebox(screen *ebiten.Image) {
+func drawBlueBox(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(
 		-float64(blueBox.Bounds().Dx())/2,
@@ -231,7 +275,7 @@ func drawCells(screen *ebiten.Image, game *Game) {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	drawBackground(screen)
-	drawBluebox(screen)
+	drawBlueBox(screen)
 	drawCells(screen, g)
 
 	if g.isGameOver {
@@ -253,6 +297,7 @@ func main() {
 		NewBoard(6, 7),
 		[]*Cell{},
 		HUMAN,
+		false,
 		false,
 	}
 
