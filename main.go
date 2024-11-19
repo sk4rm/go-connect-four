@@ -10,6 +10,7 @@ import (
 	"image"
 	_ "image/png"
 	"log"
+	"math"
 	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -133,7 +134,7 @@ func (g *Game) Update() error {
 
 	} else {
 		// AI turn
-		_, move, err := minimax(g.board, 30, false)
+		_, move, err := minimax(g.board, 8, math.Inf(-1), math.Inf(1), false)
 		if err != nil {
 			return fmt.Errorf("AI board think: %v", err)
 		}

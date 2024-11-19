@@ -15,7 +15,7 @@ func possibleBoardMoves(board Board) []int {
 	return moves
 }
 
-func minimax(board Board, depth int, isPlayerTurn bool) (_score float64, _column int, _ error) {
+func minimax(board Board, depth int, alpha, beta float64, isPlayerTurn bool) (_score float64, _column int, _ error) {
 	const (
 		WINNING_SCORE = 1.0
 		NO_SCORE      = 0.0
@@ -50,13 +50,16 @@ func minimax(board Board, depth int, isPlayerTurn bool) (_score float64, _column
 
 			// Simulate from AI POV and determine outcome desirability
 			// Lower score is desirable because humans want AI to lose
-			nextScore, nextColumn, err := minimax(nextBoard, depth-1, false)
+			nextScore, nextColumn, err := minimax(nextBoard, depth-1, alpha, beta, false)
 			if err != nil {
 				return NO_SCORE, NO_MOVE, err
 			}
 			if nextScore < score {
 				score = nextScore
 				column = nextColumn
+			}
+			if nextScore < beta {
+				beta = nextScore
 			}
 		}
 
@@ -71,13 +74,16 @@ func minimax(board Board, depth int, isPlayerTurn bool) (_score float64, _column
 
 			// Simulate from human POV and determine outcome desirability
 			// Higher score is more desirable since AI wants to win
-			nextScore, nextColumn, err := minimax(nextBoard, depth-1, true)
+			nextScore, nextColumn, err := minimax(nextBoard, depth-1, alpha, beta, true)
 			if err != nil {
 				return NO_SCORE, NO_MOVE, err
 			}
 			if nextScore > score {
 				score = nextScore
 				move = nextColumn
+			}
+			if nextScore > alpha {
+				alpha = nextScore
 			}
 		}
 	}
